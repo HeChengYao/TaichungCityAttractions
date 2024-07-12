@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>臺中市景點資訊</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .banner {
+            background-size: cover;
+            background-position: center;
+            height: 300px;
+        }
+
+        .search-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: -50px;
+        }
+
+        .card {
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+
+<body>
+    <section>
+        <div class="banner bg-cover" style="background-image: url('./離家3.jpg');"></div>
+    </section>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 search-container shadow">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <select class="form-select" id="townSelect">
+                            <option value="" selected disabled>請選擇區域</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <div class="row" id="mylist"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var allData;
+            var townselected;
+
+            $.ajax({
+                type: "GET",
+                url: "json/" + encodeURIComponent("85008景點.json"),
+                dataType: "json",
+                success: function (data) {
+                    allData = data;
+                    initTownSelect();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX 錯誤:", textStatus, errorThrown);
+                    alert("加載數據失敗，請檢查控制台以獲取更多信息。");
+                }
+            });
+
+            function initTownSelect() {
+                var towns = [...new Set(allData.map(item => item.鄉鎮))];
+                $("#townSelect").empty();
+                $("#townSelect").append('<option value="" selected disabled>請選擇區域</option>');
+                towns.forEach(function (town) {
+                    var strHTML = `<option value="${town}">${town}</option>`;
+                    $("#townSelect").append(strHTML);
+                });
+            }
+
+            $("#townSelect").change(function () {
+                townselected = $(this).val();
+                updateAttractionList();
+            });
+
+            function updateAttractionList() {
+                $("#mylist").empty();
+                allData.forEach(function (item) {
+                    if (item.鄉鎮 == townselected) {
+                        var strHTML = `
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100 shadow">
+                                <div class="card-body">
+                                    <h5 class="card-title">${item.名稱}</h5>
+                                    <p class="card-text"><strong>編號:</strong> ${item.編號}</p>
+                                    <p class="card-text"><strong>簡介:</strong> ${item.簡介說明}</p>
+                                    <p class="card-text"><strong>地址:</strong> ${item.地址}</p>
+                                    <p class="card-text"><strong>電話:</strong> ${item.電話}</p>
+                                    <p class="card-text"><strong>緯度:</strong> ${item.緯度}</p>
+                                    <p class="card-text"><strong>經度:</strong> ${item.經度}</p>
+                                    <p class="card-text"><strong>門票/收費:</strong> ${item.門票收費 || '無'}</p>
+                                    <p class="card-text"><strong>旅遊叮嚀:</strong> ${item.旅遊叮嚀 || '無'}</p>
+                                    <p class="card-text"><strong>行車資訊:</strong> ${item.行車資訊 || '無'}</p>
+                                    <p class="card-text"><strong>大眾運輸:</strong> ${item.大眾運輸 || '無'}</p>
+                                    <p class="card-text"><strong>停車資訊:</strong> ${item.停車資訊 || '無'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                        $("#mylist").append(strHTML);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
